@@ -71,6 +71,7 @@ return {
   {
     "telescope.nvim",
     dependencies = {
+      "nvim-lua/plenary.nvim",
       "nvim-telescope/telescope-fzf-native.nvim",
       build = "make",
       config = function()
@@ -146,6 +147,7 @@ return {
         "python",
         "query",
         "regex",
+        "rust",
         "tsx",
         "typescript",
         "vim",
@@ -359,6 +361,24 @@ return {
     opts = {
       -- your configuration comes here
       -- or leave it empty to use the default settings
+    },
+  },
+  {},
+  {
+    "simrat39/rust-tools.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+    opts = {
+      server = {
+        on_attach = function(_, buffnr)
+          local rt = require("rust-tools")
+          -- Hover actions
+          vim.keymap.set("n", "<C-space>", rt.hover_actions.hover_actions, { buffer = buffnr })
+          -- Code action groups
+          vim.keymap.set("n", "<Leader>a", rt.code_action_group.code_action_group, { buffer = buffnr })
+        end,
+      },
     },
   },
 }
