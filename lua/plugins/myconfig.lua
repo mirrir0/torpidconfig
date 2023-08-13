@@ -101,8 +101,8 @@ return {
       init = function()
         require("lazyvim.util").on_attach(function(_, buffer)
           -- stylua: ignore
-          vim.keymap.set( "n", "<leader>co", "TypescriptOrganizeImports", { buffer = buffer, desc = "Organize Imports" })
-          vim.keymap.set("n", "<leader>cR", "TypescriptRenameFile", { desc = "Rename File", buffer = buffer })
+          -- vim.keymap.set( "n", "<leader>co", "TypescriptOrganizeImports", { buffer = buffer, desc = "Organize Imports" })
+          -- vim.keymap.set("n", "<leader>cR", "TypescriptRenameFile", { desc = "Rename File", buffer = buffer })
         end)
       end,
     },
@@ -130,7 +130,7 @@ return {
 
   -- for typescript, LazyVim also includes extra specs to properly setup lspconfig,
   -- treesitter, mason and typescript.nvim. So instead of the above, you can use:
-  { import = "lazyvim.plugins.extras.lang.typescript" },
+  -- { import = "lazyvim.plugins.extras.lang.typescript" },
 
   -- add more treesitter parsers
   {
@@ -149,7 +149,7 @@ return {
         "regex",
         "rust",
         "tsx",
-        "typescript",
+        -- "typescript",
         "vim",
         "yaml",
       },
@@ -165,7 +165,7 @@ return {
       -- add tsx and treesitter
       vim.list_extend(opts.ensure_installed, {
         "tsx",
-        "typescript",
+        -- "typescript",
         "python",
         "rust",
         "toml",
@@ -220,6 +220,15 @@ return {
       return {}
     end,
   },
+  -- set up copilot
+  { "github/copilot.vim" },
+  { "zbirenbaum/copilot.lua" },
+  {
+    "zbirenbaum/copilot-cmp",
+    config = function()
+      require("copilot_cmp").setup()
+    end,
+  },
   -- then: setup supertab in cmp
   {
     "hrsh7th/nvim-cmp",
@@ -232,6 +241,7 @@ return {
       "hrsh7th/cmp-path",
       "hrsh7th/cmp-buffer",
       "hrsh7th/vim-vsnip",
+      "zbirenbaum/copilot-cmp",
     },
     ---@param opts cmp.ConfigSchema
     opts = function(_, opts)
@@ -243,10 +253,17 @@ return {
 
       local luasnip = require("luasnip")
       local cmp = require("cmp")
+      local has_words_before = function()
+        if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then
+          return false
+        end
+        local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+        return col ~= 0 and vim.api.nvim_buf_get_text(0, line - 1, 0, line - 1, col, {})[1]:match("^%s*$") == nil
+      end
 
       opts.mapping = vim.tbl_extend("force", opts.mapping, {
         ["<Tab>"] = cmp.mapping(function(fallback)
-          if cmp.visible() then
+          if cmp.visible() and has_words_before() then
             cmp.select_next_item()
             -- You could replace the expand_or_jumpable() calls with expand_or_locally_jumpable()
             -- they way you will only jump inside the snippet region
@@ -322,8 +339,6 @@ return {
       })
     end,
   },
-  -- set up copilot
-  { "github/copilot.vim" },
   -- set up hop
   {
     "phaazon/hop.nvim",
@@ -381,4 +396,5 @@ return {
       },
     },
   },
+  { "airblade/vim-gitgutter" },
 }
