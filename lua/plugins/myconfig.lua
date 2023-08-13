@@ -8,11 +8,13 @@ return {
   -- add gruvbox
   { "ellisonleao/gruvbox.nvim" },
 
-  -- Configure LazyVim to load gruvbox
+  -- Configure LazyVim to load colorscheme
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "murphy",
+      colorscheme = "moonfly",
+      -- colorscheme = "github_dark_high_contrast",
+      -- colorscheme = "spacecamp",
     },
   },
 
@@ -397,4 +399,14 @@ return {
     },
   },
   { "airblade/vim-gitgutter" },
+  { "phaazon/hop.nvim" },
+  {
+    "NeogitOrg/neogit",
+    dependencies = {
+      "nvim-lua/plenary.nvim", -- required
+      "nvim-telescope/telescope.nvim", -- optional
+      "sindrets/diffview.nvim", -- optional
+    },
+    config = true,
+  },
 }
