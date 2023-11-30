@@ -35,17 +35,6 @@ return {
     config = true,
   },
 
-  -- override nvim-cmp and add cmp-emoji
-  {
-    "hrsh7th/nvim-cmp",
-    dependencies = { "hrsh7th/cmp-emoji" },
-    ---@param opts cmp.ConfigSchema
-    opts = function(_, opts)
-      local cmp = require("cmp")
-      opts.sources = cmp.config.sources(vim.list_extend(opts.sources, { { name = "emoji" } }))
-    end,
-  },
-
   -- change some telescope options and a keymap to browse plugin files
   {
     "nvim-telescope/telescope.nvim",
@@ -101,7 +90,7 @@ return {
     dependencies = {
       "jose-elias-alvarez/typescript.nvim",
       init = function()
-        require("lazyvim.util").on_attach(function(_, buffer)
+        require("lazyvim.util").lsp.on_attach(function(_, buffer)
           -- stylua: ignore
           -- vim.keymap.set( "n", "<leader>co", "TypescriptOrganizeImports", { buffer = buffer, desc = "Organize Imports" })
           -- vim.keymap.set("n", "<leader>cR", "TypescriptRenameFile", { desc = "Rename File", buffer = buffer })
@@ -149,6 +138,7 @@ return {
         "python",
         "query",
         "regex",
+        "svelte",
         "rust",
         "tsx",
         -- "typescript",
@@ -167,10 +157,15 @@ return {
       -- add tsx and treesitter
       vim.list_extend(opts.ensure_installed, {
         "tsx",
-        -- "typescript",
+        "typescript",
         "python",
         "rust",
+        "svelte",
+        "go",
         "toml",
+        "zig",
+        "c",
+        "cpp",
       })
     end,
   },
@@ -210,6 +205,12 @@ return {
         "shellcheck",
         "shfmt",
         "flake8",
+        "gofumpt",
+        "goimports",
+        "golines",
+        "gopls",
+        "cpplint",
+        "cpptools",
       },
     },
   },
@@ -223,15 +224,28 @@ return {
     end,
   },
   -- set up copilot
-  { "github/copilot.vim" },
-  { "zbirenbaum/copilot.lua" },
+  { "zbirenbaum/copilot.lua", config = function() end },
   {
     "zbirenbaum/copilot-cmp",
     config = function()
-      require("copilot_cmp").setup()
+      require("copilot").setup({
+        suggestion = { enabled = false },
+        panel = { enabled = false },
+      })
+      require("copilot_cmp").setup({
+        sources = {
+          -- Copilot Source
+          { name = "copilot", group_index = 2 },
+          -- Other Sources
+          { name = "nvim_lsp", group_index = 2 },
+          { name = "path", group_index = 2 },
+          { name = "luasnip", group_index = 2 },
+        },
+      })
     end,
   },
   -- then: setup supertab in cmp
+  { "onsails/lspkind.nvim" },
   {
     "hrsh7th/nvim-cmp",
     dependencies = {
@@ -247,14 +261,44 @@ return {
     },
     ---@param opts cmp.ConfigSchema
     opts = function(_, opts)
-      local has_words_before = function()
-        unpack = unpack or table.unpack
-        local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-        return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
-      end
-
       local luasnip = require("luasnip")
+      local lspkind = require("lspkind")
       local cmp = require("cmp")
+      lspkind.init({
+        symbol_map = {
+          Text = "󰉿",
+          Method = "󰆧",
+          Function = "󰊕",
+          Constructor = "",
+          Field = "󰜢",
+          Variable = "󰀫",
+          Class = "󰠱",
+          Interface = "",
+          Module = "",
+          Property = "󰜢",
+          Unit = "󰑭",
+          Value = "󰎠",
+          Enum = "",
+          Keyword = "󰌋",
+          Snippet = "",
+          Color = "󰏘",
+          File = "󰈙",
+          Reference = "󰈇",
+          Folder = "󰉋",
+          EnumMember = "",
+          Constant = "󰏿",
+          Struct = "󰙅",
+          Event = "",
+          Operator = "󰆕",
+          TypeParameter = "",
+          nvim_lsp = "λ",
+          vsnip = "⋗",
+          buffer = "Ω",
+          path = "󰉋",
+          Copilot = "",
+        },
+      })
+
       local has_words_before = function()
         if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then
           return false
@@ -266,7 +310,7 @@ return {
       opts.mapping = vim.tbl_extend("force", opts.mapping, {
         ["<Tab>"] = cmp.mapping(function(fallback)
           if cmp.visible() and has_words_before() then
-            cmp.select_next_item()
+            cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
             -- You could replace the expand_or_jumpable() calls with expand_or_locally_jumpable()
             -- they way you will only jump inside the snippet region
           elseif luasnip.expand_or_jumpable() then
@@ -312,15 +356,17 @@ return {
         end,
       }
       -- Installed sources:
-      opts.sources = {
-        { name = "path" }, -- file paths
-        { name = "nvim_lsp", keyword_length = 3 }, -- from language server
-        { name = "nvim_lsp_signature_help" }, -- display function signatures with current parameter emphasized
-        { name = "nvim_lua", keyword_length = 2 }, -- complete neovim's Lua runtime API such vim.lsp.*
-        { name = "buffer", keyword_length = 2 }, -- source current buffer
-        { name = "vsnip", keyword_length = 2 }, -- nvim-cmp source for vim-vsnip
-        { name = "calc" }, -- source for math calculation
-      }
+      opts.sources = cmp.config.sources(vim.list_extend(opts.sources, {
+        { name = "copilot", group_index = 2 },
+        { name = "emoji", group_index = 2 },
+        { name = "path", group_index = 2 }, -- file paths
+        { name = "nvim_lsp", keyword_length = 3, group_index = 2 }, -- from language server
+        { name = "nvim_lsp_signature_help", group_index = 2 }, -- display function signatures with current parameter emphasized
+        { name = "nvim_lua", keyword_length = 2, group_index = 2 }, -- complete neovim's Lua runtime API such vim.lsp.*
+        { name = "buffer", keyword_length = 2, group_index = 2 }, -- source current buffer
+        { name = "vsnip", keyword_length = 2, group_index = 2 }, -- nvim-cmp source for vim-vsnip
+        { name = "calc", group_index = 2 }, -- source for math calculation
+      }))
       opts.window = {
         completion = cmp.config.window.bordered(),
         documentation = cmp.config.window.bordered(),
@@ -328,16 +374,6 @@ return {
 
       opts.formatting = vim.tbl_extend("force", opts.formatting, {
         fields = { "menu", "abbr", "kind" },
-        format = function(entry, item)
-          local menu_icon = {
-            nvim_lsp = "λ",
-            vsnip = "⋗",
-            buffer = "Ω",
-            path = "🖫",
-          }
-          item.menu = menu_icon[entry.source.name]
-          return item
-        end,
       })
     end,
   },
@@ -380,7 +416,20 @@ return {
       -- or leave it empty to use the default settings
     },
   },
-  {},
+  {
+    "ray-x/go.nvim",
+    dependencies = { -- optional packages
+      "ray-x/guihua.lua",
+      "neovim/nvim-lspconfig",
+      "nvim-treesitter/nvim-treesitter",
+    },
+    config = function()
+      require("go").setup()
+    end,
+    event = { "CmdlineEnter" },
+    ft = { "go", "gomod" },
+    build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
+  },
   {
     "simrat39/rust-tools.nvim",
     dependencies = {
@@ -408,5 +457,12 @@ return {
       "sindrets/diffview.nvim", -- optional
     },
     config = true,
+  },
+  {
+    "sourcegraph/sg.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+
+    -- If you have a recent version of lazy.nvim, you don't need to add this!
+    build = "nvim -l build/init.lua",
   },
 }

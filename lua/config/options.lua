@@ -17,7 +17,9 @@ local alpha = function()
   return string.format("%x", math.floor(computed))
 end
 -- g:neovide_transparency should be 0 if you want to unify transparency of content and title bar.
-vim.g.transparency = 0.9
+vim.g.transparency = 0.7
+
+vim.o.textwidth = 80
 
 vim.opt.completeopt = { "menuone", "noselect", "noinsert" }
 vim.opt.shortmess = vim.opt.shortmess + { c = true }
