@@ -171,6 +171,7 @@ return {
         "typescript",
         "python",
         "rust",
+        "go",
         "toml",
       })
     end,

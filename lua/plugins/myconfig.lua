@@ -223,27 +223,25 @@ return {
       return {}
     end,
   },
-  -- set up copilot
-  { "zbirenbaum/copilot.lua", config = function() end },
-  {
-    "zbirenbaum/copilot-cmp",
-    config = function()
-      require("copilot").setup({
-        suggestion = { enabled = false },
-        panel = { enabled = false },
-      })
-      require("copilot_cmp").setup({
-        sources = {
-          -- Copilot Source
-          { name = "copilot", group_index = 2 },
-          -- Other Sources
-          { name = "nvim_lsp", group_index = 2 },
-          { name = "path", group_index = 2 },
-          { name = "luasnip", group_index = 2 },
-        },
-      })
-    end,
-  },
+  -- {
+  --   "zbirenbaum/copilot-cmp",
+  --   config = function()
+  --     require("copilot").setup({
+  --       suggestion = { enabled = true },
+  --       panel = { enabled = true },
+  --     })
+  --     require("copilot_cmp").setup({
+  --       sources = {
+  --         -- Copilot Source
+  --         { name = "copilot", group_index = 2 },
+  --         -- Other Sources
+  --         { name = "nvim_lsp", group_index = 2 },
+  --         { name = "path", group_index = 2 },
+  --         { name = "luasnip", group_index = 2 },
+  --       },
+  --     })
+  --   end,
+  -- },
   -- then: setup supertab in cmp
   { "onsails/lspkind.nvim" },
   {
@@ -257,7 +255,7 @@ return {
       "hrsh7th/cmp-path",
       "hrsh7th/cmp-buffer",
       "hrsh7th/vim-vsnip",
-      "zbirenbaum/copilot-cmp",
+      -- "zbirenbaum/copilot-cmp",
     },
     ---@param opts cmp.ConfigSchema
     opts = function(_, opts)
@@ -295,7 +293,7 @@ return {
           vsnip = "⋗",
           buffer = "Ω",
           path = "󰉋",
-          Copilot = "",
+          -- Copilot = "",
         },
       })
 
@@ -357,7 +355,7 @@ return {
       }
       -- Installed sources:
       opts.sources = cmp.config.sources(vim.list_extend(opts.sources, {
-        { name = "copilot", group_index = 2 },
+        -- { name = "copilot", group_index = 2 },
         { name = "emoji", group_index = 2 },
         { name = "path", group_index = 2 }, -- file paths
         { name = "nvim_lsp", keyword_length = 3, group_index = 2 }, -- from language server
@@ -425,6 +423,7 @@ return {
     },
     config = function()
       require("go").setup()
+      require("go.format").goimport()
     end,
     event = { "CmdlineEnter" },
     ft = { "go", "gomod" },
